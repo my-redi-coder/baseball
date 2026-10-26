@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SSG 랜더스 행복야구 모음집 · 26 후반기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F3F4F8; --surface:#FFFFFF; --ink:#1F2240; --muted:#62667F; --line:#E2E4EC;
+  --red:#CE0E2D; --red-soft:#FCE8EB; --gold:#B88A2E; --board:#1C1F3D; --board-ink:#F4F1E6;
+  --chip:#FFFFFF; --chip-on:#1F2240; --chip-on-ink:#FFFFFF;
+  color-scheme: light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#13152B; --surface:#1D2042; --ink:#EEEFF7; --muted:#A3A7C2; --line:#2E3260;
+    --red:#FF4560; --red-soft:#3A1B2E; --gold:#E2B85C; --board:#0E1024; --board-ink:#F4F1E6;
+    --chip:#1D2042; --chip-on:#EEEFF7; --chip-on-ink:#13152B;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#13152B; --surface:#1D2042; --ink:#EEEFF7; --muted:#A3A7C2; --line:#2E3260;
+  --red:#FF4560; --red-soft:#3A1B2E; --gold:#E2B85C; --board:#0E1024; --board-ink:#F4F1E6;
+  --chip:#1D2042; --chip-on:#EEEFF7; --chip-on-ink:#13152B;
+  color-scheme: dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 120px); -webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:"IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  font-size:16px; line-height:1.6;
+}
+body::before{content:""; position:fixed; inset:0 0 auto; height:env(safe-area-inset-top,0px); z-index:10; background:var(--bg)}
+.wrap{max-width:640px; margin:0 auto; padding:0 16px}
+.display{font-family:"Do Hyeon","Black Han Sans","Apple SD Gothic Neo",sans-serif; font-weight:400; letter-spacing:.01em}
+
+/* Hero */
+header{padding:28px 0 8px}
+.kicker{margin:0 0 6px; font-size:15px; color:var(--muted)}
+h1{margin:0; font-size:clamp(34px,10vw,52px); line-height:1.05; color:var(--ink)}
+h1 .sub{display:block; font-size:.55em; color:var(--red); margin-top:6px}
+.intro{margin:14px 0 0; font-size:15px; color:var(--muted); max-width:34em}
+
+/* Scoreboard */
+.board{
+  margin:22px 0 6px; background:var(--board); color:var(--board-ink);
+  border-radius:14px; padding:16px 14px 14px;
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,.06);
+}
+.board-top{display:flex; align-items:flex-end; justify-content:space-between; gap:12px; margin-bottom:12px}
+.board-title{font-size:15px; opacity:.8; margin:0}
+.tally{display:flex; gap:14px; align-items:flex-end; flex-wrap:wrap; justify-content:flex-end}
+.tally div{text-align:right}
+.tally b{display:block; font-size:34px; line-height:1; color:#FFD36A}
+.tally .rate{padding-left:16px; border-left:1px solid rgba(255,255,255,.18)}
+.tally .rate b{color:#FF5A70}
+.tally span{font-size:12px; opacity:.75}
+.cals{display:grid; grid-template-columns:1fr 1fr; gap:16px 12px}
+@media (max-width:340px){.cals{grid-template-columns:1fr}}
+.cal h3{margin:0 0 6px; font-size:18px; font-weight:400; color:#FFD36A}
+.cal-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:3px}
+.dow-h{font-size:10px; text-align:center; opacity:.55; padding-bottom:2px}
+.day{
+  aspect-ratio:1; display:flex; align-items:center; justify-content:center;
+  font:inherit; font-size:11px; line-height:1; border:0; padding:0; background:none;
+  border-radius:5px; color:var(--board-ink); opacity:.4;
+}
+.day.first{opacity:.13}
+.day.L{opacity:1; background:rgba(255,255,255,.17)}
+.day.D{opacity:1; box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.65)}
+.day.C{opacity:.5; text-decoration:line-through}
+.day.W{opacity:1; background:#E01F3D; color:#fff; font-weight:600; cursor:pointer; box-shadow:0 0 8px rgba(255,69,96,.5)}
+.day.B{opacity:1; background:#E9A93A; color:#1C1F3D; font-weight:600; cursor:pointer}
+.day.dim{opacity:.3; box-shadow:none}
+.day:focus-visible{outline:2px solid #FFD36A; outline-offset:1px}
+.legend{display:flex; flex-wrap:wrap; gap:6px 14px; margin-top:14px; font-size:12px; opacity:.85; align-items:center}
+.legend i{display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px}
+.legend .sw-W{background:#E01F3D}
+.legend .sw-L{background:rgba(255,255,255,.17)}
+.legend .sw-D{box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.65)}
+.legend .sw-C{width:auto; height:auto; font-style:normal; text-decoration:line-through; opacity:.6; vertical-align:0}
+.legend .sw-B{background:#E9A93A}
+
+/* Filters */
+.filters{
+  position:sticky; top:env(safe-area-inset-top,0px); z-index:5;
+  background:var(--bg); padding:12px 0 10px; border-bottom:1px solid var(--line);
+}
+.chips{display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; padding-bottom:2px}
+.chips::-webkit-scrollbar{display:none}
+.chip{
+  flex:0 0 auto; border:1px solid var(--line); background:var(--chip); color:var(--ink);
+  border-radius:999px; padding:7px 14px; font:inherit; font-size:14px; cursor:pointer; white-space:nowrap;
+}
+.chip[aria-pressed="true"]{background:var(--chip-on); color:var(--chip-on-ink); border-color:var(--chip-on)}
+.chip:focus-visible,.team-select:focus-visible,.watch:focus-visible,summary:focus-visible{outline:2px solid var(--red); outline-offset:2px}
+.row2{display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-top:8px}
+.team-select{
+  font:inherit; font-size:16px; color:var(--ink); background:var(--chip); min-width:0; width:100%;
+  border:1px solid var(--line); border-radius:10px; padding:6px 8px; text-overflow:ellipsis;
+}
+.team-select.on{border-color:var(--red); color:var(--red); font-weight:600}
+.row3{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:6px; min-height:22px}
+.reset{border:0; background:none; color:var(--red); font:inherit; font-size:13px; font-weight:600; padding:2px 0; cursor:pointer}
+.reset:focus-visible{outline:2px solid var(--red); outline-offset:2px}
+.count{font-size:13px; color:var(--muted)}
+
+/* Month blocks */
+.month{margin-top:26px}
+.month h2{font-size:26px; margin:0 0 10px; display:flex; align-items:baseline; gap:10px}
+.month h2 small{font-family:"IBM Plex Sans KR",sans-serif; font-size:13px; color:var(--muted); font-weight:400}
+
+/* Game ticket */
+.game{
+  display:grid; grid-template-columns:72px 1fr; background:var(--surface);
+  border-radius:12px; margin-bottom:10px; overflow:hidden;
+  border:1px solid var(--line);
+}
+.game:target,.game.hit{border-color:var(--red); box-shadow:0 0 0 2px var(--red)}
+.stub{
+  background:var(--red); color:#fff; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; padding:12px 4px; position:relative; text-align:center;
+}
+.stub::after{
+  content:""; position:absolute; right:-1px; top:8px; bottom:8px; width:0;
+  border-right:2px dashed var(--surface);
+}
+.stub .md{font-size:26px; line-height:1}
+.stub .dow{font-size:12px; opacity:.9; margin-top:4px}
+.game.bonus .stub{background:var(--gold)}
+.body{padding:12px 14px 14px; min-width:0}
+.meta{display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:14px}
+.vs{font-weight:600}
+.place{color:var(--muted); font-size:13px}
+.score{margin-left:auto; font-size:20px; line-height:1; color:var(--red); white-space:nowrap}
+.score .opp{color:var(--muted)}
+.sp{margin:6px 0 0; font-size:13px; font-weight:600; color:var(--ink); display:flex; align-items:center; gap:6px}
+.sp span{font-size:11px; font-weight:500; color:var(--red); border:1px solid var(--red); border-radius:4px; padding:1px 5px; line-height:1.4}
+.title{margin:8px 0 0; font-size:16px; font-weight:600; line-height:1.45; word-break:keep-all; overflow-wrap:anywhere}
+.note{margin:4px 0 0; font-size:14px; color:var(--muted); word-break:keep-all; overflow-wrap:anywhere}
+details{margin-top:8px; font-size:14px}
+summary{cursor:pointer; color:var(--red); font-weight:500}
+.letter{margin:8px 0 0; padding:10px 12px; background:var(--red-soft); border-radius:8px; color:var(--ink); line-height:1.7; word-break:break-all}
+.watch{
+  display:inline-flex; align-items:center; gap:7px; margin-top:12px;
+  background:var(--ink); color:var(--bg); text-decoration:none;
+  border-radius:999px; padding:8px 15px 8px 12px; font-size:14px; font-weight:600;
+}
+.watch svg{width:16px; height:16px; flex:0 0 auto}
+.watch:active{transform:scale(.98)}
+.empty{padding:40px 0; text-align:center; color:var(--muted)}
+
+footer{padding:36px 0 48px; text-align:center; color:var(--muted); font-size:14px}
+
+/* Guestbook */
+.guest{margin-top:40px; padding-top:24px; border-top:1px solid var(--line)}
+.guest h2{font-size:26px; margin:0; display:flex; align-items:baseline; gap:10px}
+.guest h2 small{font-family:"IBM Plex Sans KR",sans-serif; font-size:13px; color:var(--muted)}
+.gb-form{margin-top:12px; background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:12px}
+.gb-row{display:flex; gap:8px}
+.gb-emoji{
+  flex:0 0 64px; font-size:22px; text-align:center; border:1px solid var(--line); border-radius:10px;
+  background:var(--bg); color:var(--ink); padding:6px 4px;
+}
+.gb-text{
+  flex:1 1 auto; min-width:0; font:inherit; font-size:16px; color:var(--ink);
+  background:var(--bg); border:1px solid var(--line); border-radius:10px; padding:9px 12px;
+}
+.gb-emoji:focus-visible,.gb-text:focus-visible,.gb-send:focus-visible{outline:2px solid var(--red); outline-offset:1px}
+.gb-foot{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:8px}
+.gb-count{font-size:12px; color:var(--muted)}
+.gb-send{
+  border:0; border-radius:999px; background:var(--red); color:#fff; font:inherit; font-size:14px;
+  font-weight:600; padding:8px 18px; cursor:pointer;
+}
+.gb-send:disabled{opacity:.45; cursor:default}
+.gb-msg{margin:8px 0 0; font-size:13px; color:var(--muted); min-height:1em}
+.gb-list{list-style:none; margin:14px 0 0; padding:0}
+.gb-list li{display:flex; gap:10px; align-items:flex-start; padding:10px 2px; border-bottom:1px solid var(--line)}
+.gb-list .e{font-size:22px; line-height:1.2; flex:0 0 auto}
+.gb-list .m{flex:1 1 auto; min-width:0; word-break:keep-all; overflow-wrap:anywhere}
+.gb-list .t{flex:0 0 auto; font-size:12px; color:var(--muted); padding-top:3px}
+.gb-empty{color:var(--muted); font-size:14px; padding:12px 2px}
+footer .display{font-size:22px; color:var(--ink); display:block; margin-bottom:4px}
+
+@media (prefers-reduced-motion: no-preference){
+  .game{transition:box-shadow .3s}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="kicker">⚾️🦴🐶</p>
+    <h1 class="display">SSG 랜더스<br>행복야구 모음집<span class="sub">2026 후반기</span></h1>
+    <p class="intro">올브 이후 자체 재개막한 랜더스의 이긴 경기만 모았어요. 달력의 빨간 날짜를 누르면 그 경기로 바로 가고, ‘하이라이트 보기’를 누르면 유튜브가 열려요.</p>
+
+    <section class="board" aria-label="승리 전광판">
+      <div class="board-top">
+        <p class="board-title display">승리 전광판</p>
+        <div class="tally display">
+          <div><b>34</b><span>승</span></div>
+          <div><b>2</b><span>무</span></div>
+          <div><b>22</b><span>패</span></div>
+          <div class="rate"><b>.607</b><span>승률</span></div>
+        </div>
+      </div>
+      <div class="cals" id="cals"></div>
+      <div class="legend">
+        <span><i class="sw-W"></i>승</span>
+        <span><i class="sw-L"></i>패</span>
+        <span><i class="sw-D"></i>무</span>
+        <span><i class="sw-C">12</i>취소</span>
+        <span><i class="sw-B"></i>최광야구</span>
+        <span>흐린 날짜는 경기 없음</span>
+      </div>
+    </section>
+  </header>
+</div>
+
+<div class="filters">
+  <div class="wrap">
+    <div class="chips" id="months" role="group" aria-label="월 선택"></div>
+    <div class="row2">
+      <select class="team-select" id="team" aria-label="상대팀 선택"></select>
+      <select class="team-select" id="starter" aria-label="선발투수 선택"></select>
+      <select class="team-select" id="ha" aria-label="홈 원정 선택"></select>
+    </div>
+    <div class="row3">
+      <span class="count" id="count"></span>
+      <button class="reset" id="reset" type="button" hidden>필터 초기화</button>
+    </div>
+  </div>
+</div>
+
+<main class="wrap" id="list"></main>
+
+<section class="wrap guest" aria-labelledby="gb-title" hidden>
+  <h2 class="display" id="gb-title">방명록 <small>한 줄 후기 남겨줘 🫶</small></h2>
+  <div class="gb-form" id="gb-form" hidden>
+    <div class="gb-row">
+      <select class="gb-emoji" id="gb-emoji" aria-label="이모지 선택"></select>
+      <input class="gb-text" id="gb-text" type="text" maxlength="80" placeholder="한 줄 후기를 적어주세요" aria-label="한 줄 후기" autocomplete="off">
+    </div>
+    <div class="gb-foot">
+      <span class="gb-count" id="gb-count">0/80</span>
+      <button class="gb-send" id="gb-send" type="button" disabled>남기기</button>
+    </div>
+  </div>
+  <p class="gb-msg" id="gb-msg" role="status"></p>
+  <ul class="gb-list" id="gb-list"></ul>
+</section>
+
+<footer class="wrap">
+  <span class="display">올 한 해 행복했다 어석이들아 🫶</span>
+  내년엔 144경기 내내 행복하자
+</footer>
+
+<script>
+const GAMES = [
+  {d:"0716", sp:"아빌라", opp:"KIA", home:true,  park:"문학", s:[6,0],  t:"아빌라 데뷔 퀄스승", v:"LS8jDgrYWdc"},
+  {d:"0722", sp:"아빌라", opp:"롯데", home:false, park:"사직", s:[7,3],  t:"마드리스 외인행동 시작", v:"pfWUMrTiOyI"},
+  {d:"0723", sp:"김민준", opp:"롯데", home:false, park:"사직", s:[5,2],  t:"쓱민준 막내 아님 사실 베테랑임", v:"VBRb5krI868"},
+  {d:"0724", sp:"해치", opp:"NC",  home:true,  park:"문학", s:[7,3],  t:"건영아재와 함께하는 3퀄스 3연승", v:"GdZ-BAVgtWc"},
+  {d:"0725", sp:"김건우", opp:"NC",  home:true,  park:"문학", s:[10,4], t:"얼레벌레 투수단과 최정의 호크룩스들", v:"IJnWL8H0QNM"},
+  {d:"0729", sp:"김민준", opp:"두산", home:true,  park:"문학", s:[6,2],  t:"막내의 연속 QS와 에그타르트의 보은", v:"FJfRpyI6Ev0"},
+  {d:"0801", sp:"타케다", opp:"키움", home:false, park:"고척", s:[10,2], t:"타케다 재기를 응원하는 맷데e먼(아님)과 빠따들", v:"xqIqKH0E-FY"},
+  {d:"0804", sp:"김민준", opp:"LG",  home:true,  park:"문학", s:[10,8], t:"도니야 글케됐다...9타자 빅이닝쇼 그리고 환장쇼", n:"조뱅이 잼컨 말아주는 경기^^", v:"qEh2bFdP938"},
+  {d:"0811", sp:"아빌라", opp:"롯데", home:true,  park:"문학", s:[8,4],  t:"방화없는 랜더스 오랜만^^ 멘탈정화 재개막전", v:"wQ-pFRSro7A"},
+  {d:"0812", sp:"김민준", opp:"롯데", home:true,  park:"문학", s:[9,1],  t:"투타 사이좋네ㅎ 강팀의 면모 랜디네라네요", n:"시원한 경기 보고싶을 때 추천", v:"H3-_ZrjTMdU"},
+  {d:"0814", sp:"최민준", opp:"LG",  home:false, park:"잠실", s:[5,3],  t:"얼큰한 맵치매운탕인데.. 우리끼린 승투인걸루", v:"fbXsqHMj98s"},
+  {d:"0816", sp:"아빌라", opp:"LG",  home:false, park:"잠실", s:[6,0],  t:"갓빌라 무실점 QS+와 윳랑단의 눈물(마에리ㄱㅃㅇ)", v:"-UZ-qZzybT08"},
+  {d:"0818", sp:"김민준", opp:"삼성", home:false, park:"대구", s:[5,4],  t:"신인 5QS 달성! 도니야 선수로서 널 귀애한다!", n:"조뱅아 텃세 그만...", v:"xjPN_A-sg_8"},
+  {d:"0820", sp:"최민준", opp:"삼성", home:false, park:"대구", s:[6,4],  t:"쫄깃쫄깃 역전극으로 무려 3연속 위닝시리즈v", v:"TE99DJVBfhw"},
+  {d:"0825", sp:"김민준", opp:"한화", home:true,  park:"문학", s:[7,1],  t:"QS기록 대신 승.. 행복인지 아닌지 아리까리", v:"SW-hZMebrJU"},
+  {d:"0826", sp:"최민준", opp:"한화", home:true,  park:"문학", s:[6,1],  t:"오늘도 배부른 6회말b 민준&민준이들 ㅎㅇㅌ", v:"6JVTdbqXWpU"},
+  {d:"0827", sp:"김건우", opp:"한화", home:true,  park:"문학", s:[13,6], t:"막 지다가도 이기네ㄷㄷ 림동무 자주보자우!", n:"1회 39구였는데 5회에 95구...? 건우야 미쳤니(p/n)", v:"84JR9JvkGyo"},
+  {d:"0901", sp:"최민준", opp:"키움", home:false, park:"고척", s:[4,0],  t:"외로운 투수들의 잼컨 콘테스트(feat. 에댜의 가호)", v:"18jqMlUDRaY"},
+  {d:"0902", sp:"김건우", opp:"키움", home:false, park:"고척", s:[9,6],  t:"지다가도 막 이기는 팀 ㄷㄷ 제정신 랜더스v", n:"늙크크들의 매발이 눈물겹읍니다..", v:"b_mwR-Mkxgk"},
+  {d:"0904", sp:"아빌라", opp:"두산", home:true,  park:"문학", s:[4,0],  t:"갓빌라 강림하사 완봉승의 권능을 보이셨도다..!", n:"아빌라-을라🙏", v:"NdvF_O8ROFs"},
+  {d:"0905", sp:"김민준", opp:"두산", home:true,  park:"문학", s:[3,2],  t:"세상에 빛이 되는 승리를 기억해6", n:"김성현, 마지막 수비", v:"ihFhH0pJoLs"},
+  {d:"0909", sp:"이로운", opp:"두산", home:false, park:"잠실", s:[1,0],  t:"돼돕돼 성공 ~ 막내돼지 이로운 첫 선발승", n:"6회까지 67구 9K, 돼빌라 모드on ㄷㄷ", v:"4Jy4USoe8bU"},
+  {d:"0910", sp:"아빌라", opp:"한화", home:true,  park:"문학", s:[4,3],  t:"아바라 잘했고 깐따삐 잘했다 청라가자", v:"Zx8MAbxss9U"},
+  {d:"0915", sp:"김민준", opp:"KIA", home:true,  park:"문학", s:[6,3],  t:"최정..맹준이 뱃속에서 보구있지?", n:"3안타 1홈런 클라스", v:"EkfTHZ_nmbQ"},
+  {d:"0916", sp:"아빌라", opp:"롯데", home:false, park:"사직", s:[4,1],  t:"To.아빌라", letter:"안녕빌라야널처음본순간부터야선으로좋아했어시즌끝나기전에고백하고싶었는데바보같이그땐용기가없더라지금이수많은사람들앞에서오로지너만청라1선발이라말하고싶어서큰마음먹고용기내어봐매번너선발날마다티비앞에서두근댔고마운드에서도너만보이고너생각만나고너가온이후로계속그랬어니가수비로고통받았다고할때내마음도너무아파왔지만내심좋은맘두있었어이런내맘을어떻게말할까고민하다가정말인생에서제일크게용기내어세상에서제일멋지게많은크보팬들앞에서고백하고싶어선수로서사랑하는빌라야청라1선발이되어줄래?", v:"uASeyC22KUc"},
+  {d:"0917", sp:"이로운", opp:"NC",  home:false, park:"창원", s:[2,1],  t:"레댜 보내겠습니다 아니 취소하겠습니다..", n:"퀄스플과 홈보살의 조합 그리고 20홀드까지!", v:"A0q03VP1_YU"},
+  {d:"0920", sp:"김건우", opp:"키움", home:true,  park:"문학", s:[10,5], t:"하늘(근처)에 계신 그분께 이 5타점을 바칩니다 by.후계자", v:"xXBm2qysaSs"},
+  {d:"0929", sp:"아빌라", opp:"LG",  home:true,  park:"문학", s:[7,1],  t:"oh갓빌라oh 내년 전구단 완투승 드가자고!!!!!", v:"4f8wlLC_1wg"},
+  {d:"0930", sp:"김건우", opp:"LG",  home:true,  park:"문학", s:[4,3],  t:"국대 랜더스가 말아주는 궁극의 역전 도파민", n:"풀영상 끝에서 24분부터 추천합니다", v:"GX7B9N8Y9Jg"},
+  {d:"1001", sp:"김민준", opp:"LG",  home:true,  park:"문학", s:[6,5],  t:"례?? 1957일만이요?.. 쨌든 스윕승 맛잇다~", v:"eoV6amUpCMY"},
+  {d:"1004", sp:"최민준", opp:"NC",  home:false, park:"창원", s:[6,2],  t:"걍 끝나면 심심할가바 만루한산 차렷스므니다", n:"타케다.... 그동안...고...이제 가라...", v:"lsw4cFhuvu0"},
+  {d:"1005", sp:"아빌라", opp:"NC",  home:false, park:"창원", s:[9,0],  t:"아바라에게 은혜갚는 야수들(p)", n:"야무진 수비와 득점지원까지...바라야 남을거지?", v:"xyMLk90p5fQ"},
+  {d:"1007", sp:"김민준", opp:"NC",  home:true,  park:"문학", s:[6,3],  t:"루키데이맞이 모범조교 시범 완. 첫 무실점 QS+", v:"GIh95h3W7Go"},
+  {d:"1009", sp:"이로운", opp:"삼성", home:true,  park:"문학", s:[3,1],  t:"문학에서, 내년을 꿈꾸게하는 아름다운 마무리", n:"자력 6위 달성! 문학에서 개막하자~~~", v:"8uhv5CLQonE"},
+  {d:"1017", sp:"박성한 / 최지훈", bonus:true, t:"멜라토닌 먹고 꾸는 꿈인가..? 승리듀수와 함께 랜더스 승🦴🐶", n:"이 뜨거운 열기 어떻게 막을꺼에용~? ✨️", v:"A9sAMY4-jVc"}
+];
+
+const DOW = ["일","월","화","수","목","금","토"];
+const MONTHS = [
+  {key:"all", label:"전체"},
+  {key:"7", label:"7월"},
+  {key:"8", label:"8월"},
+  {key:"9", label:"9월"},
+  {key:"10", label:"10월"},
+  {key:"bonus", label:"최광야구"}
+];
+const MONTH_NAMES = {"7":"7월 July","8":"8월 August","9":"9월 September","10":"10월 October","bonus":"Bonus 최광야구"};
+
+GAMES.forEach(g=>{
+  g.m = String(parseInt(g.d.slice(0,2),10));
+  g.day = parseInt(g.d.slice(2),10);
+  g.group = g.bonus ? "bonus" : g.m;
+  g.dow = DOW[new Date(2026, parseInt(g.m,10)-1, g.day).getDay()];
+});
+
+const state = {month:"all", team:"all", sp:"all", ha:"all"};
+const listEl = document.getElementById("list");
+const calsEl = document.getElementById("cals");
+const monthsEl = document.getElementById("months");
+const teamEl = document.getElementById("team");
+const spEl = document.getElementById("starter");
+const haEl = document.getElementById("ha");
+const resetEl = document.getElementById("reset");
+const countEl = document.getElementById("count");
+
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+
+const PLAY = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="var(--red)"/><path d="M10 8.2v7.6l6-3.8z" fill="#fff"/></svg>';
+
+function matches(g){
+  const okM = state.month==="all" || g.group===state.month;
+  const okT = state.team==="all" || g.opp===state.team;
+  const okS = state.sp==="all" || g.sp===state.sp;
+  const okH = state.ha==="all" || (!g.bonus && (state.ha==="home") === g.home);
+  return okM && okT && okS && okH;
+}
+function resetFilters(){
+  state.month="all"; state.team="all"; state.sp="all"; state.ha="all";
+  teamEl.value="all"; spEl.value="all"; haEl.value="all";
+}
+
+function card(g){
+  const id = "g"+g.d;
+  const meta = g.bonus
+    ? `<span class="vs">최광야구</span><span class="place">팬 페스티벌</span>`
+    : `<span class="vs">vs ${esc(g.opp)}</span><span class="place">${esc(g.park)} ${g.home?"홈":"원정"}</span>
+       <span class="score display" aria-label="SSG ${g.s[0]}점, ${esc(g.opp)} ${g.s[1]}점">${g.s[0]} <span class="opp">: ${g.s[1]}</span></span>`;
+  const note = g.n ? `<p class="note">${esc(g.n)}</p>` : "";
+  const sp = g.sp ? `<p class="sp"><span>선발</span>${esc(g.sp)}</p>` : "";
+  const letter = g.letter ? `<details><summary>아빌라에게 쓴 편지 펼치기 💌</summary><p class="letter">${esc(g.letter)}</p></details>` : "";
+  return `<article class="game${g.bonus?" bonus":""}" id="${id}">
+    <div class="stub"><span class="md display">${g.m}.${String(g.day).padStart(2,"0")}</span><span class="dow">${g.dow}요일</span></div>
+    <div class="body">
+      <div class="meta">${meta}</div>
+      ${sp}
+      <p class="title">${esc(g.t)}</p>
+      ${note}${letter}
+      <a class="watch" href="https://youtu.be/${encodeURIComponent(g.v)}" target="_blank" rel="noopener">${PLAY}${g.bonus ? "Full영상 보기" : "하이라이트 보기"}</a>
+    </div>
+  </article>`;
+}
+
+function render(){
+  const shown = GAMES.filter(matches);
+  const groups = ["7","8","9","10","bonus"];
+  let html = "";
+  groups.forEach(k=>{
+    const items = shown.filter(g=>g.group===k);
+    if(!items.length) return;
+    html += `<section class="month"><h2 class="display">${MONTH_NAMES[k]} <small>${items.length}승</small></h2>${items.map(card).join("")}</section>`;
+  });
+  listEl.innerHTML = html || `<p class="empty">이 조건에 맞는 승리 경기가 없어요. 다른 월이나 상대팀을 골라 보세요.</p>`;
+  countEl.textContent = `${shown.length}경기 표시 중`;
+  calsEl.querySelectorAll("button.day").forEach(b=>b.classList.toggle("dim", !matches(GAME_BY[b.dataset.d])));
+  [...monthsEl.children].forEach(c=>c.setAttribute("aria-pressed", c.dataset.key===state.month));
+  teamEl.classList.toggle("on", state.team!=="all");
+  spEl.classList.toggle("on", state.sp!=="all");
+  haEl.classList.toggle("on", state.ha!=="all");
+  resetEl.hidden = state.month==="all" && state.team==="all" && state.sp==="all" && state.ha==="all";
+}
+
+// calendar: every date of the second half, coloured by result
+// W 승, L 패, D 무, C 취소, B 최광야구; no entry = 경기 없음
+const RES = {
+  7:{16:"W",17:"L",18:"L",19:"L",21:"L",22:"W",23:"W",24:"W",25:"W",26:"D",28:"L",29:"W",30:"L",31:"L"},
+  8:{1:"W",2:"L",4:"W",5:"C",6:"C",7:"C",8:"C",9:"C",11:"W",12:"W",13:"L",14:"W",15:"L",16:"W",18:"W",19:"L",20:"W",21:"D",22:"C",23:"L",25:"W",26:"W",27:"W",28:"C",29:"L",30:"C"},
+  9:{1:"W",2:"W",3:"L",4:"W",5:"W",6:"L",8:"L",9:"W",10:"W",11:"L",15:"W",16:"W",17:"W",20:"W",22:"L",24:"L",25:"C",29:"W",30:"W"},
+  10:{1:"W",3:"L",4:"W",5:"W",6:"L",7:"W",9:"W",10:"L",17:"B"}
+};
+const RES_TXT = {L:"패",D:"무승부",C:"경기 취소"};
+const GAME_BY = Object.fromEntries(GAMES.map(g=>[g.d,g]));
+[7,8,9,10].forEach(m=>{
+  const days = new Date(2026, m, 0).getDate();
+  const start = new Date(2026, m-1, 1).getDay();
+  const res = RES[m] || {};
+  let h = `<div class="cal"><h3 class="display">${m}월</h3><div class="cal-grid">`
+    + DOW.map(x=>`<span class="dow-h" aria-hidden="true">${x}</span>`).join("")
+    + `<span></span>`.repeat(start);
+  for(let d=1; d<=days; d++){
+    const r = res[d];
+    const key = String(m).padStart(2,"0") + String(d).padStart(2,"0");
+    if(r==="W" || r==="B"){
+      const g = GAME_BY[key];
+      const label = r==="B" ? `${m}월 ${d}일 최광야구` : `${m}월 ${d}일 vs ${g.opp} 승리`;
+      h += `<button class="day ${r}" data-d="${key}" title="${label}" aria-label="${label}, 경기로 이동">${d}</button>`;
+    } else {
+      const cls = r ? r : (m===7 && d<16 ? "first" : "");
+      const tip = r ? `${m}월 ${d}일 ${RES_TXT[r]}` : (cls==="first" ? `${m}월 ${d}일 전반기` : "");
+      h += `<span class="day ${cls}"${tip?` title="${tip}"`:""}>${d}</span>`;
+    }
+  }
+  h += `</div></div>`;
+  calsEl.insertAdjacentHTML("beforeend", h);
+});
+calsEl.addEventListener("click", e=>{
+  const b = e.target.closest("button.day");
+  if(!b) return;
+  const g = GAME_BY[b.dataset.d];
+  if(!matches(g)){ resetFilters(); render(); }
+  goTo("g"+g.d);
+});
+
+// scroll to a card by computing its position, leaving room for the sticky filter bar
+let focusTimer;
+function goTo(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  const bar = document.querySelector(".filters").getBoundingClientRect().height;
+  const top = el.getBoundingClientRect().top + window.pageYOffset - bar - 10;
+  const smooth = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  window.scrollTo({top: Math.max(0, top), behavior: smooth ? "smooth" : "auto"});
+  document.querySelectorAll(".game.hit").forEach(x=>x.classList.remove("hit"));
+  el.classList.add("hit");
+  clearTimeout(focusTimer);
+  focusTimer = setTimeout(()=>{
+    try{ el.querySelector(".watch").focus({preventScroll:true}); }catch(e){}
+    el.classList.remove("hit");
+  }, smooth ? 1600 : 1200);
+}
+
+// month chips
+MONTHS.forEach(m=>{
+  const c = document.createElement("button");
+  c.className = "chip"; c.dataset.key = m.key; c.textContent = m.label;
+  c.addEventListener("click", ()=>{ state.month = m.key; render(); });
+  monthsEl.appendChild(c);
+});
+
+// team select
+const teams = [...new Set(GAMES.filter(g=>!g.bonus).map(g=>g.opp))];
+const order = ["KIA","LG","NC","kt","두산","롯데","삼성","키움","한화"];
+teams.sort((a,b)=>order.indexOf(a)-order.indexOf(b));
+teamEl.innerHTML = `<option value="all">상대 전체</option>` + teams.map(t=>{
+  const n = GAMES.filter(g=>g.opp===t).length;
+  return `<option value="${esc(t)}">vs ${esc(t)} (${n}승)</option>`;
+}).join("");
+teamEl.addEventListener("change", e=>{ state.team = e.target.value; render(); });
+
+// starter select (most starts first)
+const spCount = {};
+GAMES.forEach(g=>{ if(g.sp) spCount[g.sp] = (spCount[g.sp]||0) + 1; });
+const sps = Object.keys(spCount).sort((a,b)=> spCount[b]-spCount[a] || a.localeCompare(b,"ko"));
+spEl.innerHTML = `<option value="all">선발 전체</option>` + sps.map(s=>
+  `<option value="${esc(s)}">${esc(s)} (${spCount[s]})</option>`).join("");
+spEl.addEventListener("change", e=>{ state.sp = e.target.value; render(); });
+
+// home / away select
+const nHome = GAMES.filter(g=>!g.bonus && g.home).length;
+const nAway = GAMES.filter(g=>!g.bonus && !g.home).length;
+haEl.innerHTML = `<option value="all">홈/원정</option><option value="home">홈 (${nHome})</option><option value="away">원정 (${nAway})</option>`;
+haEl.addEventListener("change", e=>{ state.ha = e.target.value; render(); });
+
+resetEl.addEventListener("click", ()=>{ resetFilters(); render(); });
+
+render();
+
+// open a game straight from a shared link like #g0904
+function openHash(){
+  const h = location.hash.slice(1);
+  if(/^g\d{4}$/.test(h)){
+    goTo(h);
+  }
+}
+openHash();
+window.addEventListener("hashchange", openHash);
+
+/* ---------- 방명록 (Google Apps Script 연결) ---------- */
+// 아래 따옴표 안에 Apps Script 웹 앱 주소를 넣으면 방명록이 켜져요.
+const GUESTBOOK_URL = "https://script.google.com/macros/s/AKfycbzBw-2aaOnSTANYVRZEwspz2TBVja6F1aMVr915iy6VXAG1LdjQfuT23zPqvkbdDG6Kxw/exec";
+const GB_EMOJIS = ["🥹","🐶","🌈","❣️","🦴","🙏","⚾️","🌟"];
+(function guestbook(){
+  const form = document.getElementById("gb-form");
+  const sel = document.getElementById("gb-emoji");
+  const input = document.getElementById("gb-text");
+  const send = document.getElementById("gb-send");
+  const count = document.getElementById("gb-count");
+  const msg = document.getElementById("gb-msg");
+  const list = document.getElementById("gb-list");
+
+  GB_EMOJIS.forEach(e=>{ const o=document.createElement("option"); o.value=e; o.textContent=e; sel.appendChild(o); });
+
+  if(!GUESTBOOK_URL){ msg.textContent = "방명록을 준비하고 있어요."; return; }
+
+  function fmt(ts){
+    const d = new Date(ts); if(isNaN(d)) return "";
+    return `${String(d.getMonth()+1).padStart(2,"0")}.${String(d.getDate()).padStart(2,"0")}`;
+  }
+  function draw(items){
+    list.textContent = "";
+    if(!items.length){
+      const p = document.createElement("li"); p.className="gb-empty"; p.textContent="아직 후기가 없어요. 첫 줄을 남겨주세요!"; list.appendChild(p); return;
+    }
+    items.forEach(it=>{
+      const li = document.createElement("li");
+      const e = document.createElement("span"); e.className="e"; e.textContent = GB_EMOJIS.includes(it.e) ? it.e : "⚾️";
+      const m = document.createElement("span"); m.className="m"; m.textContent = String(it.m||"");
+      const t = document.createElement("span"); t.className="t"; t.textContent = fmt(it.t);
+      li.append(e, m, t); list.appendChild(li);
+    });
+  }
+  async function load(){
+    try{
+      const r = await fetch(GUESTBOOK_URL, {cache:"no-store"});
+      const data = await r.json();
+      form.hidden = false; msg.textContent = "";
+      document.querySelector(".guest").hidden = false;
+      draw(Array.isArray(data) ? data : []);
+    }catch(err){
+      msg.textContent = "이 화면에서는 방명록을 불러올 수 없어요.";
+    }
+  }
+  function sync(){
+    count.textContent = `${input.value.length}/80`;
+    send.disabled = input.value.trim().length===0 || send.dataset.busy==="1";
+  }
+  input.addEventListener("input", sync);
+  input.addEventListener("keydown", e=>{ if(e.key==="Enter" && !e.isComposing && !send.disabled){ e.preventDefault(); submit(); } });
+  send.addEventListener("click", submit);
+
+  async function submit(){
+    const text = input.value.replace(/\s+/g," ").trim().slice(0,80);
+    if(!text) return;
+    send.dataset.busy = "1"; sync(); msg.textContent = "남기는 중...";
+    try{
+      const r = await fetch(GUESTBOOK_URL, {method:"POST", body: JSON.stringify({e: sel.value, m: text})});
+      const res = await r.json().catch(()=>({ok:true}));
+      if(res && res.ok === false) throw new Error("rejected");
+      input.value = "";
+      await load();
+      msg.textContent = "남겼어요! 고마워요 🫶";
+      setTimeout(()=>{ send.dataset.busy="0"; sync(); }, 15000); // 도배 방지용 15초 대기
+    }catch(err){
+      msg.textContent = "저장하지 못했어요. 잠시 뒤에 다시 해주세요.";
+      send.dataset.busy = "0";
+    }
+    sync();
+  }
+  load();
+})();
+</script>
+</body>
+</html>
